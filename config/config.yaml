@@ -1,0 +1,27 @@
+simulation:
+  duration_days: 7
+  n_nests: 4
+  nest_selection_weights: [0.25, 0.25, 0.25, 0.25]
+
+# Fasce orarie configurabili (ore del giorno, 0-23). "notte" attraversa la mezzanotte.
+time_windows:
+  notte: {start: 20, end: 4}
+  giorno: {start: 5, end: 15}
+  sera: {start: 16, end: 19}
+
+distributions:
+  giorno:
+    gamma: {shape: 0.905, rate: 0.0099}
+    mixture_prob: 0.98
+    uniform: {min: 1000, max: 10800}
+    arrival_rate_per_hour: 19.2
+  notte:
+    gamma: {shape: 1.106, rate: 0.0055}
+    mixture_prob: 0.98
+    uniform: {min: 1000, max: 10800}
+    arrival_rate_per_hour: 0.3
+  sera:
+    gamma: {shape: 0.771, rate: 0.0127}
+    mixture_prob: 0.97
+    uniform: {min: 1000, max: 10800}
+    arrival_rate_per_hour: 1.6
