@@ -4,6 +4,7 @@ import heapq
 import random
 from pathlib import Path
 from typing import Dict, List, Tuple
+from collections import Counter
 
 from src.core.nest import Nest
 from src.stochastic.distributions import ServiceTimeSampler
@@ -57,6 +58,33 @@ class Simulator:
             json.dump(metrics, f, indent=2)
         
         return metrics
+    
+    def _aggregate_co_occurrences(self) -> Dict[str, int]:
+        """Aggregate co-occurrence counts across all nests.
+        
+        Returns a dict mapping "hen_A,hen_B" -> total count across all nests.
+        """
+        total_co_occurrences = Counter()
+        
+        for nest in self.nests:
+            nest_co_occ = nest.get_co_occurrences()
+            for pair, count in nest_co_occ.items():
+                # Convert tuple to string key for JSON serialization
+                pair_key = f"{pair[0]},{pair[1]}"
+                total_co_occurrences[pair_key] += count
+        
+        return dict(total_co_occurrences)
+    
+    def _write_co_occurrences(self, output_dir: Path) -> Dict[str, int]:
+        """Write co-occurrence data to JSON file."""
+        co_occurrences = self._aggregate_co_occurrences()
+        
+        co_occ_path = output_dir / "co_occurrences.json"
+        with co_occ_path.open("w", encoding="utf-8") as f:
+            json.dump(co_occurrences, f, indent=2)
+        
+        self.logger.info("Co-occurrence data written to %s (%d pairs)", co_occ_path, len(co_occurrences))
+        return co_occurrences
 
     def run(self, output_path: str | Path) -> Dict[int, Dict]:
         duration_days = self.config["duration_days"]
@@ -92,10 +120,11 @@ class Simulator:
         for nest in self.nests:
             nest.finalize_metrics(final_time)
         
-        # Write logs and metrics
+        # Write logs, metrics, and co-occurrences
         output_path = Path(output_path)
         self._write_csv(output_path)
         metrics = self._write_metrics(output_path.parent)
+        co_occurrences = self._write_co_occurrences(output_path.parent)
         
         self.logger.info("Simulation complete. Wrote %d events.", len(self.logs))
         self.logger.info("Occupancy metrics written to %s", output_path.parent / "occupancy_metrics.json")
