@@ -43,8 +43,7 @@ class ArrivalGenerator:
 
         while t < total_seconds:
             window = self.window_for_time(t)
-            rate_hour = self.sampler.arrival_rate_per_hour(window)
-            rate_sec = rate_hour / 3600.0
+            rate_sec = self.sampler.arrival_rate_per_second(window)
             boundary = self._next_boundary_seconds(t)
 
             if rate_sec <= 0:

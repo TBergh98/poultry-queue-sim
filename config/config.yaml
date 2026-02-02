@@ -15,17 +15,17 @@ simulations:
         gamma: {shape: 1.106007044, rate: 0.005501793}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.301470588  # 2.411764706 / 8
+        arrival_rate_per_second: 0.00008374183  # 0.301470588 / 3600
       giorno:
         gamma: {shape: 0.905118183, rate: 0.009922638}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 17.53101605  # 192.9411765 / 11
+        arrival_rate_per_second: 0.004869726680555556  # 17.53101605 / 3600
       sera:
         gamma: {shape: 0.77139994, rate: 0.012763672}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 1.235294118  # 4.941176471 / 4
+        arrival_rate_per_second: 0.000343137255  # 1.235294118 / 3600
 
   - name: "pre_2"
     duration_days: 18
@@ -36,17 +36,17 @@ simulations:
         gamma: {shape: 0.886537524, rate: 0.004286278}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.257352941  # 2.058823529 / 8
+        arrival_rate_per_second: 0.00007148692805555555  # 0.257352941 / 3600
       giorno:
         gamma: {shape: 0.945286247, rate: 0.008681838}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 17.29411765  # 190.2352941 / 11
+        arrival_rate_per_second: 0.004803921569444445  # 17.29411765 / 3600
       sera:
         gamma: {shape: 0.650365796, rate: 0.011751648}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 1.235294118  # 4.941176471 / 4
+        arrival_rate_per_second: 0.000343137255  # 1.235294118 / 3600
 
   - name: "post_1"
     duration_days: 220
@@ -57,17 +57,17 @@ simulations:
         gamma: {shape: 0.963698459, rate: 0.007471344}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.077380952  # 0.619047619 / 8
+        arrival_rate_per_second: 0.00002149470888888889  # 0.077380952 / 3600
       giorno:
         gamma: {shape: 0.88787549, rate: 0.007217957}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 3.100288600  # 34.10317460 / 11
+        arrival_rate_per_second: 0.0008611912777777778  # 3.100288600 / 3600
       sera:
         gamma: {shape: 0.831076429, rate: 0.009532013}
         mixture_prob: 0.97
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.198412699  # 0.793650794 / 4
+        arrival_rate_per_second: 0.00005511463861111111  # 0.198412699 / 3600
 
   - name: "post_2"
     duration_days: 220
@@ -78,14 +78,14 @@ simulations:
         gamma: {shape: 0.977153483, rate: 0.006177577}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.451480263  # 3.611842105 / 8
+        arrival_rate_per_second: 0.00012541118416666667  # 0.451480263 / 3600
       giorno:
         gamma: {shape: 0.902203913, rate: 0.006902258}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 5.111244019  # 56.22368421 / 11
+        arrival_rate_per_second: 0.0014197900052777778  # 5.111244019 / 3600
       sera:
         gamma: {shape: 0.899557473, rate: 0.008011554}
         mixture_prob: 0.98
         uniform: {min: 1000, max: 10800}
-        arrival_rate_per_hour: 0.455592105  # 1.822368421 / 4
+        arrival_rate_per_second: 0.0001265533625  # 0.455592105 / 3600
