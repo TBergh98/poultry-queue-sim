@@ -1,8 +1,8 @@
 # Fasce orarie configurabili (ore del giorno, 0-23). "notte" attraversa la mezzanotte.
 time_windows:
-  notte: {start: 20, end: 4}
-  giorno: {start: 5, end: 15}
-  sera: {start: 16, end: 19}
+  notte: {start: 20, end: 5}
+  giorno: {start: 5, end: 16}
+  sera: {start: 16, end: 20}
 
 # Lista di simulazioni: ogni simulazione può sovrascrivere duration_days, n_nests, nest_selection_weights, distributions
 simulations:

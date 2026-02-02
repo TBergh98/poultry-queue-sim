@@ -1,4 +1,5 @@
 import csv
+import json
 import heapq
 import random
 from pathlib import Path
@@ -43,15 +44,34 @@ class Simulator:
             writer.writeheader()
             writer.writerows(self.logs)
 
-    def run(self, output_path: str | Path) -> None:
-        duration_days = self.config["simulation"]["duration_days"]
+    def _write_metrics(self, output_dir: Path) -> Dict[int, Dict]:
+        """Write nest occupancy metrics to JSON file and return them."""
+        output_dir.mkdir(parents=True, exist_ok=True)
+        metrics = {}
+        for nest in self.nests:
+            nest_metrics = nest.get_metrics()
+            metrics[nest.nest_id] = nest_metrics
+        
+        metrics_path = output_dir / "occupancy_metrics.json"
+        with metrics_path.open("w", encoding="utf-8") as f:
+            json.dump(metrics, f, indent=2)
+        
+        return metrics
+
+    def run(self, output_path: str | Path) -> Dict[int, Dict]:
+        duration_days = self.config["duration_days"]
         arrivals = self.arrival_generator.generate_arrivals(duration_days)
         events: List[Tuple[float, str, int, int | None, str]] = []
+        final_time = 0.0
+        
         for t, hen_id, window in arrivals:
             heapq.heappush(events, (t, "arrival", hen_id, None, window))
+            final_time = max(final_time, t)
 
         while events:
             current_time, event_type, hen_id, nest_id, window = heapq.heappop(events)
+            final_time = max(final_time, current_time)
+            
             if event_type == "arrival":
                 nest = self._choose_nest()
                 logs, exit_event = nest.handle_arrival(current_time, hen_id, self.sampler, window)
@@ -68,5 +88,16 @@ class Simulator:
                     exit_time, exit_hen = next_exit
                     heapq.heappush(events, (exit_time, "exit", exit_hen, nest.nest_id, window_now))
 
-        self._write_csv(Path(output_path))
+        # Finalize metrics for all nests at final simulation time
+        for nest in self.nests:
+            nest.finalize_metrics(final_time)
+        
+        # Write logs and metrics
+        output_path = Path(output_path)
+        self._write_csv(output_path)
+        metrics = self._write_metrics(output_path.parent)
+        
         self.logger.info("Simulation complete. Wrote %d events.", len(self.logs))
+        self.logger.info("Occupancy metrics written to %s", output_path.parent / "occupancy_metrics.json")
+        
+        return metrics

@@ -105,3 +105,4 @@ data/simulated_log.csv
 /.github
 /.venv
 /input
+data/

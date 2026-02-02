@@ -35,8 +35,21 @@ def main() -> None:
 
         logger.info(f"Running simulation: {sim_name}")
         sim = Simulator(sim_config, time_windows=time_windows, seed=args.seed)
-        sim.run(output_path)
+        metrics = sim.run(output_path)
         logger.info(f"Simulation {sim_name} complete. Output: {output_path}")
+        
+        # Display occupancy metrics
+        logger.info("=" * 80)
+        logger.info("OCCUPANCY METRICS")
+        logger.info("=" * 80)
+        for nest_id in sorted(metrics.keys()):
+            m = metrics[nest_id]
+            logger.info(
+                f"Nest {m['nest_id']}: "
+                f"total_occupancy_time={m['total_occupancy_time']:.2f}s, "
+                f"total_single_hen_time={m['total_single_hen_time']:.2f}s"
+            )
+        logger.info("=" * 80)
 
 
 if __name__ == "__main__":
