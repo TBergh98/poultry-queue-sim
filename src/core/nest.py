@@ -1,5 +1,6 @@
 from collections import deque
 from typing import Deque, Dict, List, Optional, Tuple
+import random
 
 from src.stochastic.distributions import ServiceTimeSampler
 
@@ -34,7 +35,7 @@ class Nest:
     def handle_exit(
         self, current_time: float, hen_id: int, sampler: ServiceTimeSampler, window: str
     ) -> Tuple[List[Dict], Optional[Tuple[float, int]]]:
-        """Complete current service; start next if queued."""
+        """Complete current service; start next if queued (SIRO policy)."""
         logs: List[Dict] = [
             {
                 "timestamp": current_time,
@@ -46,7 +47,11 @@ class Nest:
         next_exit: Optional[Tuple[float, int]] = None
 
         if self.queue:
-            next_hen = self.queue.popleft()
+            # SIRO: Service In Random Order
+            idx = random.randrange(len(self.queue))
+            next_hen = self.queue[idx]
+            del self.queue[idx]
+            
             service_time = sampler.sample(window)
             self.busy_until = current_time + service_time
             logs.append(

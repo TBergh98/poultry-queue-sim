@@ -11,17 +11,23 @@ from src.utils.logger import setup_logger
 
 
 class Simulator:
-    def __init__(self, config: Dict, seed: int | None = None):
-        self.config = config
+    def __init__(self, sim_config: Dict, time_windows: Dict | None = None, seed: int | None = None):
+        self.config = sim_config
         self.logger = setup_logger()
         if seed is not None:
             random.seed(seed)
-        self.n_nests = config["simulation"]["n_nests"]
-        self.weights = config["simulation"].get("nest_selection_weights") or [
+        self.n_nests = sim_config["n_nests"]
+        self.weights = sim_config.get("nest_selection_weights") or [
             1 / self.n_nests
         ] * self.n_nests
-        self.sampler = ServiceTimeSampler(config["distributions"])
-        self.arrival_generator = ArrivalGenerator(config["time_windows"], self.sampler)
+        self.sampler = ServiceTimeSampler(sim_config["distributions"])
+        if time_windows is None:
+            time_windows = {
+                "notte": {"start": 20, "end": 4},
+                "giorno": {"start": 5, "end": 15},
+                "sera": {"start": 16, "end": 19},
+            }
+        self.arrival_generator = ArrivalGenerator(time_windows, self.sampler)
         self.nests = [Nest(i) for i in range(self.n_nests)]
         self.logs: List[Dict] = []
 
