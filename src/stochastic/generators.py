@@ -13,9 +13,10 @@ def _in_window(hour: float, start: int, end: int) -> bool:
 
 
 class ArrivalGenerator:
-    def __init__(self, time_windows: Mapping[str, Dict], sampler: ServiceTimeSampler):
+    def __init__(self, time_windows: Mapping[str, Dict], sampler: ServiceTimeSampler, hens_number: int = 100):
         self.time_windows = dict(time_windows)
         self.sampler = sampler
+        self.hens_number = hens_number
 
     def window_for_time(self, current_time: float) -> str:
         hour = (current_time % SECONDS_PER_DAY) / 3600.0
@@ -39,7 +40,6 @@ class ArrivalGenerator:
         total_seconds = duration_days * SECONDS_PER_DAY
         t = 0.0
         arrivals: List[Tuple[float, int, str]] = []
-        hen_id = 0
 
         while t < total_seconds:
             window = self.window_for_time(t)
@@ -58,7 +58,7 @@ class ArrivalGenerator:
             t += dt
             if t > total_seconds:
                 break
-            hen_id += 1
+            hen_id = random.randint(1, self.hens_number)
             arrivals.append((t, hen_id, window))
 
         return arrivals

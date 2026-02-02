@@ -31,7 +31,8 @@ class Simulator:
                 "giorno": {"start": 5, "end": 15},
                 "sera": {"start": 16, "end": 19},
             }
-        self.arrival_generator = ArrivalGenerator(time_windows, self.sampler)
+        hens_number = sim_config.get("hens_number", 100)
+        self.arrival_generator = ArrivalGenerator(time_windows, self.sampler, hens_number)
         self.nests = [Nest(i) for i in range(self.n_nests)]
         self.logs: List[Dict] = []
 

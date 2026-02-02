@@ -9,6 +9,7 @@ simulations:
   - name: "pre_1"
     duration_days: 18
     n_nests: 4
+    hens_number: 50
     nest_selection_weights: [0.56479076, 0.28080808, 0.11457431, 0.03982684]  # Da compilare manualmente
     distributions:
       notte:
@@ -30,6 +31,7 @@ simulations:
   - name: "pre_2"
     duration_days: 18
     n_nests: 4
+    hens_number: 50
     nest_selection_weights: [0.592635547, 0.385329081, 0.017396347, 0.004639026]  # Da compilare manualmente
     distributions:
       notte:
@@ -51,6 +53,7 @@ simulations:
   - name: "post_1"
     duration_days: 220
     n_nests: 4
+    hens_number: 80
     nest_selection_weights: [0.46050347, 0.29839410, 0.15169271, 0.08940972]  # Da compilare manualmente
     distributions:
       notte:
@@ -72,6 +75,7 @@ simulations:
   - name: "post_2"
     duration_days: 220
     n_nests: 4
+    hens_number: 80
     nest_selection_weights: [0.50000000, 0.29054477, 0.14788144, 0.06157378]  # Da compilare manualmente
     distributions:
       notte:
