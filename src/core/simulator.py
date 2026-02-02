@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import Counter
+from datetime import datetime, timedelta
 
 from src.core.nest import Nest
 from src.stochastic.distributions import ServiceTimeSampler
@@ -15,6 +16,7 @@ from src.utils.logger import setup_logger
 class Simulator:
     def __init__(self, sim_config: Dict, time_windows: Dict | None = None, seed: int | None = None):
         self.config = sim_config
+        self.name = sim_config.get("name", "unknown")
         self.logger = setup_logger()
         if seed is not None:
             random.seed(seed)
@@ -37,13 +39,64 @@ class Simulator:
         idx = random.choices(range(self.n_nests), weights=self.weights, k=1)[0]
         return self.nests[idx]
 
+    def _get_area_number(self) -> str:
+        """Extract area number from simulation name.
+        
+        Examples:
+        - "pre_1" -> "1"
+        - "post_2" -> "2"
+        - "pre_2" -> "2"
+        """
+        # Extract the last digit(s) from the simulation name
+        for i in range(len(self.name) - 1, -1, -1):
+            if self.name[i].isdigit():
+                return self.name[i]
+        return "1"  # Default to 1 if no digit found
+
+    def _map_nest_id(self, nest_index: int) -> str:
+        """Map nest index (0-3) to formatted nest ID.
+        
+        Examples:
+        - nest_index=0, area="1" -> "1.1"
+        - nest_index=1, area="1" -> "1.2"
+        - nest_index=0, area="2" -> "2.1"
+        - nest_index=3, area="2" -> "2.4"
+        """
+        area = self._get_area_number()
+        return f"{area}.{nest_index + 1}"
+
+    def _timestamp_to_datetime(self, timestamp_seconds: float) -> Tuple[str, str]:
+        """Convert simulation timestamp (seconds) to date and time strings.
+        
+        Simulation starts at 01/01/2000 00:00:00.
+        
+        Returns: (date_str, time_str) where date_str is "DD/MM/YYYY" and time_str is "HH:MM:SS"
+        """
+        start_date = datetime(2000, 1, 1)
+        event_date = start_date + timedelta(seconds=timestamp_seconds)
+        date_str = event_date.strftime("%d/%m/%Y")
+        time_str = event_date.strftime("%H:%M:%S")
+        return date_str, time_str
+
     def _write_csv(self, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        fieldnames = ["timestamp", "hen_id", "nest_id", "event_type"]
+        fieldnames = ["Data", "Ora", "Azione", "ID Gallina", "ID Nido"]
         with output_path.open("w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(self.logs)
+            
+            for log in self.logs:
+                date_str, time_str = self._timestamp_to_datetime(log["timestamp"])
+                action = "IN" if log["event_type"] == "entry" else "OUT"
+                formatted_nest_id = self._map_nest_id(log["nest_id"])
+                
+                writer.writerow({
+                    "Data": date_str,
+                    "Ora": time_str,
+                    "Azione": action,
+                    "ID Gallina": log["hen_id"],
+                    "ID Nido": formatted_nest_id,
+                })
 
     def _write_metrics(self, output_dir: Path) -> Dict[int, Dict]:
         """Write nest occupancy metrics to JSON file and return them."""
