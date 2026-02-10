@@ -38,13 +38,13 @@ def main() -> None:
         logger.info(f"Running simulation: {sim_name} (repetitions={repetitions})")
         for run_index in range(1, repetitions + 1):
             run_seed = None if args.seed is None else args.seed + run_index - 1
-            output_path = output_dir / f"simulated_log_run_{run_index:03d}.csv"
+            output_path = output_dir / "mc_metrics.json"
 
             logger.info(f"Run {run_index}/{repetitions}: {sim_name}")
             sim = Simulator(sim_config, time_windows=time_windows, seed=run_seed)
             metrics, co_occurrences = sim.run(
                 output_path,
-                write_csv=True,
+                write_csv=False,
                 write_metrics=False,
                 write_co_occurrences=False,
             )
