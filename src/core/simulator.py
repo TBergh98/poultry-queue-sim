@@ -99,18 +99,22 @@ class Simulator:
                     "ID Nido": formatted_nest_id,
                 })
 
-    def _write_metrics(self, output_dir: Path) -> Dict[int, Dict]:
-        """Write nest occupancy metrics to JSON file and return them."""
-        output_dir.mkdir(parents=True, exist_ok=True)
+    def _collect_metrics(self) -> Dict[int, Dict]:
         metrics = {}
         for nest in self.nests:
             nest_metrics = nest.get_metrics()
             metrics[nest.nest_id] = nest_metrics
-        
+        return metrics
+
+    def _write_metrics(self, output_dir: Path) -> Dict[int, Dict]:
+        """Write nest occupancy metrics to JSON file and return them."""
+        output_dir.mkdir(parents=True, exist_ok=True)
+        metrics = self._collect_metrics()
+
         metrics_path = output_dir / "occupancy_metrics.json"
         with metrics_path.open("w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=2)
-        
+
         return metrics
     
     def _aggregate_co_occurrences(self) -> Dict[str, int]:
@@ -132,15 +136,21 @@ class Simulator:
     def _write_co_occurrences(self, output_dir: Path) -> Dict[str, int]:
         """Write co-occurrence data to JSON file."""
         co_occurrences = self._aggregate_co_occurrences()
-        
+
         co_occ_path = output_dir / "co_occurrences.json"
         with co_occ_path.open("w", encoding="utf-8") as f:
             json.dump(co_occurrences, f, indent=2)
-        
+
         self.logger.info("Co-occurrence data written to %s (%d pairs)", co_occ_path, len(co_occurrences))
         return co_occurrences
 
-    def run(self, output_path: str | Path) -> Dict[int, Dict]:
+    def run(
+        self,
+        output_path: str | Path,
+        write_csv: bool = True,
+        write_metrics: bool = True,
+        write_co_occurrences: bool = True,
+    ) -> Tuple[Dict[int, Dict], Dict[str, int]]:
         duration_days = self.config["duration_days"]
         arrivals = self.arrival_generator.generate_arrivals(duration_days)
         events: List[Tuple[float, str, int, int | None, str]] = []
@@ -173,14 +183,26 @@ class Simulator:
         # Finalize metrics for all nests at final simulation time
         for nest in self.nests:
             nest.finalize_metrics(final_time)
-        
-        # Write logs, metrics, and co-occurrences
+
         output_path = Path(output_path)
-        self._write_csv(output_path)
-        metrics = self._write_metrics(output_path.parent)
-        co_occurrences = self._write_co_occurrences(output_path.parent)
-        
+        output_dir = output_path.parent
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        if write_csv:
+            self._write_csv(output_path)
+
+        if write_metrics:
+            metrics = self._write_metrics(output_dir)
+        else:
+            metrics = self._collect_metrics()
+
+        if write_co_occurrences:
+            co_occurrences = self._write_co_occurrences(output_dir)
+        else:
+            co_occurrences = self._aggregate_co_occurrences()
+
         self.logger.info("Simulation complete. Wrote %d events.", len(self.logs))
-        self.logger.info("Occupancy metrics written to %s", output_path.parent / "occupancy_metrics.json")
-        
-        return metrics
+        if write_metrics:
+            self.logger.info("Occupancy metrics written to %s", output_dir / "occupancy_metrics.json")
+
+        return metrics, co_occurrences

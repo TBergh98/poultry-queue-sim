@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 
 from src.core.simulator import Simulator
@@ -23,6 +24,7 @@ def main() -> None:
 
     time_windows = config.get("time_windows", {})
     simulations = config.get("simulations", [])
+    repetitions = int(config.get("repetitions", 1))
 
     if not simulations:
         logger.error("No simulations found in config['simulations']")
@@ -31,25 +33,41 @@ def main() -> None:
     for sim_config in simulations:
         sim_name = sim_config.get("name", "unnamed")
         output_dir = args.output_dir / sim_name
-        output_path = output_dir / "simulated_log.csv"
+        mc_runs = []
 
-        logger.info(f"Running simulation: {sim_name}")
-        sim = Simulator(sim_config, time_windows=time_windows, seed=args.seed)
-        metrics = sim.run(output_path)
-        logger.info(f"Simulation {sim_name} complete. Output: {output_path}")
-        
-        # Display occupancy metrics
-        logger.info("=" * 80)
-        logger.info("OCCUPANCY METRICS")
-        logger.info("=" * 80)
-        for nest_id in sorted(metrics.keys()):
-            m = metrics[nest_id]
-            logger.info(
-                f"Nest {m['nest_id']}: "
-                f"total_occupancy_time={m['total_occupancy_time']:.2f}s, "
-                f"total_single_hen_time={m['total_single_hen_time']:.2f}s"
+        logger.info(f"Running simulation: {sim_name} (repetitions={repetitions})")
+        for run_index in range(1, repetitions + 1):
+            run_seed = None if args.seed is None else args.seed + run_index - 1
+            output_path = output_dir / f"simulated_log_run_{run_index:03d}.csv"
+
+            logger.info(f"Run {run_index}/{repetitions}: {sim_name}")
+            sim = Simulator(sim_config, time_windows=time_windows, seed=run_seed)
+            metrics, co_occurrences = sim.run(
+                output_path,
+                write_csv=True,
+                write_metrics=False,
+                write_co_occurrences=False,
             )
-        logger.info("=" * 80)
+
+            mc_runs.append(
+                {
+                    "run_index": run_index,
+                    "seed": run_seed,
+                    "occupancy_metrics": metrics,
+                    "co_occurrences": co_occurrences,
+                }
+            )
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        mc_output_path = output_dir / "mc_metrics.json"
+        mc_payload = {
+            "simulation": sim_name,
+            "repetitions": repetitions,
+            "runs": mc_runs,
+        }
+        mc_output_path.write_text(json.dumps(mc_payload, indent=2), encoding="utf-8")
+
+        logger.info(f"Simulation {sim_name} complete. Output: {mc_output_path}")
 
 
 if __name__ == "__main__":

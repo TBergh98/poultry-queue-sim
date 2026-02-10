@@ -4,6 +4,9 @@ time_windows:
   giorno: {start: 5, end: 16}
   sera: {start: 16, end: 20}
 
+# Numero di repliche Monte Carlo per ciascuna simulazione
+repetitions: 100
+
 # Lista di simulazioni: ogni simulazione può sovrascrivere duration_days, n_nests, nest_selection_weights, distributions
 simulations:
   - name: "pre_1"
