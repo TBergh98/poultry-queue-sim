@@ -23,6 +23,12 @@ Discrete-event simulation for hens entering/leaving nests with stochastic arriva
    python -m src.main --config config/config.yaml --output-dir data --seed 42
    ```
 
+   Run a subset of scenarios (CLI):
+   ```bash
+   python -m src.main --config config/config.yaml --output-dir data --only post_2
+   python -m src.main --config config/config.yaml --output-dir data --only pre_1,post_2
+   ```
+
 3. Analyze co-occurrence patterns:
    ```bash
    python analyze_co_occurrences.py --simulation pre_1
@@ -37,16 +43,21 @@ See `config/config.yaml` to configure:
 - **Time windows**: Night/day/evening time ranges (24h format)
 - **Distributions**: Gamma/uniform mixture parameters per time window
 - **Arrival rates**: Poisson arrival rates per time window
+- **run_only** (optional): List of scenario names to run (overridden by `--only`)
+- **sample_logs** (optional): Number of CSV sample logs per scenario
 
 ## Output
 
-Each simulation generates 3 files in `data/{simulation_name}/`:
+Each simulation generates summary data and sample logs in `data/{simulation_name}/`:
 
-1. **`simulated_log.csv`**: Event log with columns `timestamp, hen_id, nest_id, event_type`
-   - Timestamps are seconds from simulation start
-   - Events: `entry` (hen enters nest), `exit` (hen leaves nest)
+1. **`mc_metrics.json`**: Monte Carlo results for all runs
+   - Per-run fields include `avg_daily_entries` and `avg_stay_duration`
 
-2. **`occupancy_metrics.json`**: Nest occupancy statistics
+2. **`sample_run_001.csv`** (and `sample_run_002.csv`, `sample_run_003.csv`): Event log samples
+   - Columns: `Data`, `Ora`, `Azione`, `ID Gallina`, `ID Nido`
+   - Actions: `IN` (hen enters nest), `OUT` (hen leaves nest)
+
+3. **`occupancy_metrics.json`**: Nest occupancy statistics
    ```json
    {
      "0": {
@@ -57,7 +68,7 @@ Each simulation generates 3 files in `data/{simulation_name}/`:
    }
    ```
 
-3. **`co_occurrences.json`**: Hen pair co-occurrence counts
+4. **`co_occurrences.json`**: Hen pair co-occurrence counts
    ```json
    {
      "241,78": 5,

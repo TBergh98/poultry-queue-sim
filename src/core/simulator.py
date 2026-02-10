@@ -4,7 +4,7 @@ import heapq
 import random
 from pathlib import Path
 from typing import Dict, List, Tuple
-from collections import Counter
+from collections import Counter, defaultdict, deque
 from datetime import datetime, timedelta
 
 from src.core.nest import Nest
@@ -150,11 +150,15 @@ class Simulator:
         write_csv: bool = True,
         write_metrics: bool = True,
         write_co_occurrences: bool = True,
-    ) -> Tuple[Dict[int, Dict], Dict[str, int]]:
+    ) -> Tuple[Dict[int, Dict], Dict[str, int], Dict[str, float]]:
         duration_days = self.config["duration_days"]
         arrivals = self.arrival_generator.generate_arrivals(duration_days)
         events: List[Tuple[float, str, int, int | None, str]] = []
         final_time = 0.0
+        total_entries = 0
+        total_stays = 0
+        total_stay_duration = 0.0
+        active_entries: Dict[Tuple[int, int], deque[float]] = defaultdict(deque)
         
         for t, hen_id, window in arrivals:
             heapq.heappush(events, (t, "arrival", hen_id, None, window))
@@ -167,6 +171,8 @@ class Simulator:
             if event_type == "arrival":
                 nest = self._choose_nest()
                 logs, exit_event = nest.handle_arrival(current_time, hen_id, self.sampler, window)
+                total_entries += 1
+                active_entries[(hen_id, nest.nest_id)].append(current_time)
                 self.logs.extend(logs)
                 if exit_event:
                     exit_time, exit_hen = exit_event
@@ -175,6 +181,17 @@ class Simulator:
                 window_now = self.arrival_generator.window_for_time(current_time)
                 nest = self.nests[nest_id]
                 logs, next_exit = nest.handle_exit(current_time, hen_id, self.sampler, window_now)
+                entry_key = (hen_id, nest_id)
+                if active_entries[entry_key]:
+                    entry_time = active_entries[entry_key].popleft()
+                    total_stay_duration += current_time - entry_time
+                    total_stays += 1
+                else:
+                    self.logger.warning(
+                        "Missing entry for exit event (hen_id=%s, nest_id=%s)",
+                        hen_id,
+                        nest_id,
+                    )
                 self.logs.extend(logs)
                 if next_exit:
                     exit_time, exit_hen = next_exit
@@ -205,4 +222,11 @@ class Simulator:
         if write_metrics:
             self.logger.info("Occupancy metrics written to %s", output_dir / "occupancy_metrics.json")
 
-        return metrics, co_occurrences
+        avg_daily_entries = total_entries / duration_days if duration_days > 0 else 0.0
+        avg_stay_duration = total_stay_duration / total_stays if total_stays > 0 else 0.0
+        run_metrics = {
+            "avg_daily_entries": avg_daily_entries,
+            "avg_stay_duration": avg_stay_duration,
+        }
+
+        return metrics, co_occurrences, run_metrics

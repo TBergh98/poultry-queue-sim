@@ -5,7 +5,10 @@ time_windows:
   sera: {start: 16, end: 20}
 
 # Numero di repliche Monte Carlo per ciascuna simulazione
-repetitions: 100
+repetitions: 10000
+
+# Numero di log CSV di esempio per scenario (campionati randomicamente)
+sample_logs: 3
 
 # Lista di simulazioni: ogni simulazione può sovrascrivere duration_days, n_nests, nest_selection_weights, distributions
 simulations:
